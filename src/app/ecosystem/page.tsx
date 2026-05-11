@@ -35,8 +35,11 @@ interface EcoLeader {
 }
 
 const MAX_ORBIT_NODES = 24;
-/** Radius in viewBox units (0–100); keeps nodes inside the card. */
-const ORBIT_RADIUS = 36;
+const ORBIT_R = 34;
+const CX = 50;
+const CY = 50;
+const NODE_R = 4.5;
+const CENTER_R = 7;
 
 function EcosystemNetworkGraph({ network }: { network: NetworkNode[] }) {
   const centerName = network[0]?.centerName ?? "Center";
@@ -46,73 +49,58 @@ function EcosystemNetworkGraph({ network }: { network: NetworkNode[] }) {
   const placed = useMemo(() => {
     if (n === 0) return [];
     return orbitNodes.map((node, i) => {
-      // Evenly distribute around circle; tiny deterministic offset spreads labels when n is small
-      const base = (-Math.PI / 2 + (2 * Math.PI * i) / n) + (hash01(node.id) - 0.5) * 0.08;
-      const x = 50 + ORBIT_RADIUS * Math.cos(base);
-      const y = 50 + ORBIT_RADIUS * Math.sin(base);
-      return { node, x, y, isBanked: node.status === "banked" };
+      const base = -Math.PI / 2 + (2 * Math.PI * i) / n + (hash01(node.id) - 0.5) * 0.08;
+      return {
+        node,
+        x: CX + ORBIT_R * Math.cos(base),
+        y: CY + ORBIT_R * Math.sin(base),
+        isBanked: node.status === "banked",
+      };
     });
   }, [orbitNodes, n]);
 
   return (
-    <div className="relative mx-auto w-full max-w-[440px] aspect-square overflow-hidden rounded-lg border border-border/60 bg-muted/10">
-      {/* Edges: hub-and-spoke in normalized coordinates */}
-      <svg
-        className="pointer-events-none absolute inset-0 size-full"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="xMidYMid meet"
-        aria-hidden
-      >
+    <div className="mx-auto w-full max-w-[560px]">
+      <svg viewBox="0 0 100 100" className="w-full" style={{ aspectRatio: "1/1" }}>
+        {/* Edges */}
         {placed.map(({ node, x, y }) => (
-          <line
-            key={`edge-${node.id}`}
-            x1={50}
-            y1={50}
-            x2={x}
-            y2={y}
-            className="stroke-border"
-            strokeWidth={0.35}
-            strokeOpacity={0.9}
-          />
+          <line key={`e-${node.id}`} x1={CX} y1={CY} x2={x} y2={y} stroke="#94a3b8" strokeWidth={0.3} />
         ))}
+
+        {/* Center node */}
+        <circle cx={CX} cy={CY} r={CENTER_R} fill="hsl(221,83%,53%)" />
+        <text x={CX} y={CY - 0.2} textAnchor="middle" dominantBaseline="central" fill="white" fontSize={2.6} fontWeight={700}>
+          {centerName.length > 14 ? `${centerName.slice(0, 13)}…` : centerName}
+        </text>
+        <text x={CX} y={CY + CENTER_R + 2.8} textAnchor="middle" fill="#64748b" fontSize={2.2}>
+          Center Node
+        </text>
+
+        {/* Orbit nodes */}
+        {placed.map(({ node, x, y, isBanked }) => (
+          <g key={node.id}>
+            <circle cx={x} cy={y} r={NODE_R} fill={isBanked ? "#10b981" : "#f59e0b"} />
+            <text x={x} y={y + 0.2} textAnchor="middle" dominantBaseline="central" fill="white" fontSize={2} fontWeight={700}>
+              {node.name.slice(0, 6)}
+            </text>
+            <text x={x} y={y + NODE_R + 2.2} textAnchor="middle" fill="#64748b" fontSize={1.8}>
+              {node.name.length > 16 ? `${node.name.slice(0, 15)}…` : node.name}
+            </text>
+          </g>
+        ))}
+
+        {n === 0 && (
+          <text x={CX} y={CY + CENTER_R + 10} textAnchor="middle" fill="#94a3b8" fontSize={3}>
+            No direct trading partners found.
+          </text>
+        )}
       </svg>
 
-      {/* Center */}
-      <div
-        className="absolute left-1/2 top-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1"
-      >
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-center text-[10px] font-bold leading-tight text-primary-foreground shadow-lg">
-          {centerName.length > 12 ? `${centerName.slice(0, 11)}…` : centerName}
-        </div>
-        <span className="text-xs font-medium text-muted-foreground">Center</span>
+      <div className="flex gap-4 justify-center mt-1 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full bg-emerald-500" /> Banked</span>
+        <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full bg-amber-500" /> Unbanked</span>
+        <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-full bg-primary" /> Center</span>
       </div>
-
-      {/* Orbit partners */}
-      {placed.map(({ node, x, y, isBanked }) => (
-        <div
-          key={node.id}
-          className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5"
-          style={{ left: `${x}%`, top: `${y}%` }}
-          title={`${node.name}\n${node.status} · ${node.region}\n${formatNumber(node.txCount)} tx · ${formatZAR(node.tradeAmount)}`}
-        >
-          <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white shadow-md transition-transform hover:scale-110 ${
-              isBanked ? "bg-emerald-500" : "bg-amber-500"
-            }`}
-          >
-            {node.name.slice(0, 5)}
-          </div>
-          <span className="max-w-[72px] truncate text-center text-[10px] text-muted-foreground">
-            {node.name}
-          </span>
-        </div>
-      ))}
-
-      {n === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-sm text-muted-foreground">
-          No direct trading partners found for this customer in the graph.
-        </div>
-      )}
     </div>
   );
 }
@@ -149,11 +137,6 @@ export default function EcosystemPage() {
         <div className="space-y-6">
           <Card title="Network Visualization" subtitle={`Trading partners for ${data.network[0]?.centerName || customerId}`}>
             <EcosystemNetworkGraph network={data.network} />
-            <div className="flex gap-4 justify-center mt-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-emerald-500" /> Banked</span>
-              <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-amber-500" /> Unbanked</span>
-              <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-full bg-primary" /> Center</span>
-            </div>
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
