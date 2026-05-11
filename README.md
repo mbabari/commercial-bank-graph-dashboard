@@ -28,6 +28,12 @@ Multi-hop traversal of customer trading networks with direct partner tables and 
 
 ![Ecosystem Map](docs/screenshots/ecosystem.png)
 
+### Entity Resolution
+High-confidence matches between unbanked entities and existing banked customers
+
+![Entity Resolution](docs/screenshots/entity-resolution.png)
+
+
 ### Product Cross-Sell
 Peer-based product gap analysis for fit-for-purpose recommendations, with segment penetration rates.
 
