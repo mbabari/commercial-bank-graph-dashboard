@@ -6,7 +6,7 @@ This tree is a **sanitised** copy of the Commercial Bank Graph dashboard. Config
 
 1. Create a public repository (suggested name: `commercial-bank-graph-dashboard`).
 
-2. Replace `YOUR_GITHUB_ORG` in `README.md` with your GitHub user or organisation.
+2. If you fork under another GitHub organisation, update clone URLs in `README.md` to match your fork.
 
 3. Keep `.env.local` out of git (see `.gitignore`). Copy from `.env.example` and fill in your Aura URI and password locally only.
 

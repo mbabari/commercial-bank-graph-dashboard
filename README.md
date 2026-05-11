@@ -59,7 +59,7 @@ Payment diversity, stability, and concentration as creditworthiness proxies — 
 ### Setup
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_ORG/commercial-bank-graph-dashboard.git
+git clone https://github.com/mbabari/commercial-bank-graph-dashboard.git
 cd commercial-bank-graph-dashboard
 npm install
 ```
@@ -116,4 +116,4 @@ src/
 
 ## Related
 
-- [Commercial Graph Demo](https://github.com/YOUR_GITHUB_ORG/commercial-bank-graph-demo) — Cypher scripts, data model, synthetic data generation, GDS algorithms, and entity resolution
+- [Commercial Graph Demo](https://github.com/mbabari/commercial-bank-graph-demo) — Cypher scripts, data model, synthetic data generation, GDS algorithms, and entity resolution
